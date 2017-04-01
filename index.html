@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html ng-app="crworlds">
+<head>
+	<title>Streamer</title>
+	<link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/angular_material/1.1.0/angular-material.min.css">
+	<style>
+		.margin-0 {
+			margin: 0;
+		}
+	</style>
+</head>
+<body ng-controller="MainCtrl" flex layout="column">
+	<section layout="row" flex>
+		<md-sidenav
+			class="md-sidenav-left md-whiteframe-z2"
+			md-component-id="left"
+			md-is-locked-open="true"
+			style="width: 500px;">
+
+			<md-content layout="row">
+				<md-list>
+					<md-list-item ng-repeat="channel in channels" ng-click="getChannelVideos(channel.name)" aria-label="Channel">
+						<img class="md-avatar" ng-src="{{channel.img}}">
+					</md-list-item>
+				</md-list>
+
+				<md-list>
+					<md-list-item ng-repeat="video in videos" ng-click="selectVideo(video)" aria-label="Video">
+						<div layout="column" layout-align="start start">
+							<p>{{video.title}}</p>
+							<p>{{video.game}}</p>
+							<img ng-src="{{video.thumbnails[0].url}}" style="width: 100%;"/>
+						</div>
+					</md-list-item>
+				</md-list>
+			</md-content>
+		</md-sidenav>
+
+		<md-content flex layout-padding>
+			<iframe
+			    ng-src="{{$sce.trustAsResourceUrl('http://player.twitch.tv/?video=' + currentVideo._id)}}"
+			    height="432"
+			    width="768">
+			</iframe>
+
+			<p>{{currentVideo.title}}</p>
+			<p>{{currentVideo.tag_list}}</p>
+		</md-content>
+	</section>
+
+
+	<script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular.min.js"></script>
+	<script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular-animate.min.js"></script>
+	<script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular-aria.min.js"></script>
+	<script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular-messages.min.js"></script>
+	<script src="http://ajax.googleapis.com/ajax/libs/angular_material/1.1.0/angular-material.min.js"></script>
+
+	<script type="text/javascript">
+		var app = angular.module('crworlds', ['ngMaterial']);
+
+		app.service('TwitchService', ['$http', function($http) {
+			this.getChannelVideos = function(channel) {
+				return $http({
+					method: 'GET',
+					url: 'https://api.twitch.tv/kraken/channels/'+channel+'/videos',
+					headers: {
+						'Client-ID': '5s3as3zrs8w8zqayv4ly0f99c3u9gp'
+					}
+				})
+			};
+		}]);
+
+		app.controller('MainCtrl', ['$scope', '$sce', 'TwitchService', function($scope, $sce, TwitchService) {
+			$scope.$sce = $sce;
+			$scope.channels = [
+				{name: 'enchatin', img: 'https://lh4.googleusercontent.com/-WsVeWF_0Gvs/AAAAAAAAAAI/AAAAAAACBTw/SlnXXckbFZA/s32-c-k-no/photo.jpg'},
+				{name: 'axtlol', img: 'https://lh4.googleusercontent.com/-WsVeWF_0Gvs/AAAAAAAAAAI/AAAAAAACBTw/SlnXXckbFZA/s32-c-k-no/photo.jpg'},
+				{name: 'kamikat', img: 'https://lh4.googleusercontent.com/-WsVeWF_0Gvs/AAAAAAAAAAI/AAAAAAACBTw/SlnXXckbFZA/s32-c-k-no/photo.jpg'},
+				{name: 'ogaminglol', img: 'https://lh4.googleusercontent.com/-WsVeWF_0Gvs/AAAAAAAAAAI/AAAAAAACBTw/SlnXXckbFZA/s32-c-k-no/photo.jpg'},
+				{name: 'magyarloltv', img: 'https://lh4.googleusercontent.com/-WsVeWF_0Gvs/AAAAAAAAAAI/AAAAAAACBTw/SlnXXckbFZA/s32-c-k-no/photo.jpg'}
+			];
+
+			$scope.getChannelVideos = function(channelName) {
+				TwitchService.getChannelVideos(channelName).then(function(response) {
+					console.log(response.data);
+					$scope.videos = response.data.videos;
+				});
+			};
+
+			$scope.selectVideo = function(video) {
+				$scope.currentVideo = video;
+			}
+			
+		}]);
+	</script>
+</body>
+</html>
