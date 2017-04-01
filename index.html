@@ -44,7 +44,15 @@
 			</iframe>
 
 			<p>{{currentVideo.title}}</p>
+
 			<p>{{currentVideo.tag_list}}</p>
+
+			<iframe scrolling="yes"
+					id="chat_embed"
+					ng-src="{{$sce.trustAsResourceUrl('http://twitch.tv/' + currentChannel.name + '/chat')}}"
+					height="800"
+					width="500">
+			</iframe>
 		</md-content>
 	</section>
 
@@ -82,7 +90,8 @@
 
 			$scope.getChannelVideos = function(channelName) {
 				TwitchService.getChannelVideos(channelName).then(function(response) {
-					console.log(response.data);
+					$scope.currentChannel = response.data;
+					$scope.currentChannel.name = channelName;
 					$scope.videos = response.data.videos;
 				});
 			};
