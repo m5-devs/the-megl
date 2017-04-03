@@ -64,13 +64,14 @@
 			flex="25">
 
 			<md-content layout="row">
-				<md-list md-whiteframe="4dp" style="width: 70px;">
-					<md-list-item ng-repeat="player in players" ng-click="selectPlayer($index)" aria-label="Player">
+				<md-list md-whiteframe="4dp" style="width: 110px; overflow: hidden;">
+					<md-list-item ng-repeat="player in players" ng-click="selectPlayer($index)" aria-label="Player" style="margin: 10px 0px">
+						<md-tooltip>{{player.channel}}</md-tooltip>
 						<img class="md-avatar" ng-src="{{player.photo}}">
 					</md-list-item>
 				</md-list>
 
-				<md-list>
+				<md-list style="overflow-y: scroll; overflow-x: hidden; background-color: rgba(0,0,0,.05);">
 					<md-list-item
 						ng-repeat="video in players[currentPlayer].twitch.videos"
 						ng-click="selectVideo(video)"
@@ -94,6 +95,8 @@
 			<md-toolbar md-whiteframe="4dp">
 				<div class="md-toolbar-tools" layout="row" layout-align="space-around center">
 					<h2>The Megl</h2>
+
+					<md-icon md-svg-src="https://raw.githubusercontent.com/Kasimir123/themegl/master/res/svg/ic_bracket_black_24px.svg"></md-icon>
 				</div>
 			</md-toolbar>
 
@@ -152,13 +155,13 @@
 				{
 					channel: 'enchatin',
 					twitter: 'enchatin',
-					photo: 'https://lh4.googleusercontent.com/-WsVeWF_0Gvs/AAAAAAAAAAI/AAAAAAACBTw/SlnXXckbFZA/s32-c-k-no/photo.jpg',
+					photo: 'http://i.imgur.com/0iUULGy.png',
 					cover: 'http://i.imgur.com/jd7LD9B.jpg'
 				},
 				{
 					channel: 'axtlol',
 					twitter: 'TwitterDev',
-					photo: 'https://lh4.googleusercontent.com/-WsVeWF_0Gvs/AAAAAAAAAAI/AAAAAAACBTw/SlnXXckbFZA/s32-c-k-no/photo.jpg',
+					photo: 'https://static-cdn.jtvnw.net/jtv_user_pictures/enchatin-profile_image-f3f03701302e9ac4-300x300.png',
 					cover: 'http://www.trendycovers.com/covers/Hand_Heart_facebook_cover_1331287340.jpg'
 				},
 				{
