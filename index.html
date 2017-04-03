@@ -11,6 +11,9 @@
 		.margin-0 {
 			margin: 0;
 		}
+		.padding-0 {
+			padding: 0;
+		}
 
 		iframe {
 			border: none;
@@ -58,21 +61,25 @@
 			class="md-sidenav-left md-whiteframe-z2"
 			md-component-id="left"
 			md-is-locked-open="$mdMedia('gt-md')"
-			style="width: 500px;">
+			flex="25">
 
 			<md-content layout="row">
-				<md-list>
-					<md-list-item ng-repeat="player in channels" ng-click="selectPlayer($index)" aria-label="Player">
+				<md-list md-whiteframe="4dp" style="width: 70px;">
+					<md-list-item ng-repeat="player in players" ng-click="selectPlayer($index)" aria-label="Player">
 						<img class="md-avatar" ng-src="{{player.photo}}">
 					</md-list-item>
 				</md-list>
 
 				<md-list>
-					<md-list-item ng-repeat="video in currentPlayer.twitch.videos" ng-click="selectVideo(video)" aria-label="Video">
-						<div layout="column" layout-align="start start">
-							<p>{{video.title}}</p>
-							<p>{{video.game}}</p>
-							<img ng-src="{{video.thumbnails[0].url}}" style="width: 100%;"/>
+					<md-list-item
+						ng-repeat="video in players[currentPlayer].twitch.videos"
+						ng-click="selectVideo(video)"
+						aria-label="Video">
+
+						<div layout="column" layout-align="start start" style="padding: 10px 5px;">
+							<p class="md-subhead margin-0">{{video.title}}</p>
+							<p class="md-body-1 margin-0">{{video.game}}</p>
+							<img ng-src="{{video.thumbnails[0].url}}" class="padding-0" style="width: 100%;"/>
 						</div>
 					</md-list-item>
 				</md-list>
@@ -81,7 +88,7 @@
 
 		<div flex layout="column">
 			<div class="bg-blur" flex="100">
-				<img ng-src="{{channels[currentPlayer].cover}}"/>
+				<img ng-src="{{players[currentPlayer].cover}}"/>
 			</div>
 
 			<md-toolbar md-whiteframe="4dp">
@@ -97,7 +104,7 @@
 					</md-card>
 
 					<md-card flex>
-						<iframe flex ng-src="{{$sce.trustAsResourceUrl('http://twitch.tv/' + channels[currentPlayer].channel + '/chat')}}"></iframe>
+						<iframe flex ng-src="{{$sce.trustAsResourceUrl('http://twitch.tv/' + players[currentPlayer].channel + '/chat')}}"></iframe>
 					</md-card>
 				</div>
 
@@ -106,9 +113,7 @@
 						<md-card-content>
 							<a class="twitter-timeline"
 							   ng-href="https://twitter.com/{{channels[currentPlayer].twitter}}"
-							   data-screen-name="{{channels[currentPlayer].twitter}}">
-							   Tweets by {{channels[currentPlayer].twitter}}
-							</a>
+							   data-screen-name="{{channels[currentPlayer].twitter}}"></a>
 
 							<script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
 						</md-card-content>
@@ -143,53 +148,64 @@
 			$scope.$mdMedia = $mdMedia;
 			$scope.$sce = $sce;
 			$scope.currentPlayer = 0;
-			$scope.channels = [
+			$scope.players = [
 				{
 					channel: 'enchatin',
 					twitter: 'enchatin',
-					photo: 'https://lh4.googleusercontent.com/-WsVeWF_0Gvs/AAAAAAAAAAI/AAAAAAACBTw/SlnXXckbFZA/s32-c-k-no/photo.jpg'
+					photo: 'https://lh4.googleusercontent.com/-WsVeWF_0Gvs/AAAAAAAAAAI/AAAAAAACBTw/SlnXXckbFZA/s32-c-k-no/photo.jpg',
+					cover: 'http://i.imgur.com/jd7LD9B.jpg'
 				},
 				{
 					channel: 'axtlol',
 					twitter: 'TwitterDev',
-					photo: 'https://lh4.googleusercontent.com/-WsVeWF_0Gvs/AAAAAAAAAAI/AAAAAAACBTw/SlnXXckbFZA/s32-c-k-no/photo.jpg'
+					photo: 'https://lh4.googleusercontent.com/-WsVeWF_0Gvs/AAAAAAAAAAI/AAAAAAACBTw/SlnXXckbFZA/s32-c-k-no/photo.jpg',
+					cover: 'http://www.trendycovers.com/covers/Hand_Heart_facebook_cover_1331287340.jpg'
 				},
 				{
 					channel: 'kamikat',
 					twitter: 'TwitterDev',
-					photo: 'https://lh4.googleusercontent.com/-WsVeWF_0Gvs/AAAAAAAAAAI/AAAAAAACBTw/SlnXXckbFZA/s32-c-k-no/photo.jpg'
+					photo: 'https://lh4.googleusercontent.com/-WsVeWF_0Gvs/AAAAAAAAAAI/AAAAAAACBTw/SlnXXckbFZA/s32-c-k-no/photo.jpg',
+					cover: 'https://s-media-cache-ak0.pinimg.com/originals/84/21/d1/8421d1b53991d565a0e07d0d88cc83f2.jpg'
 				},
 				{
 					channel: 'ogaminglol',
 					twitter: 'TwitterDev',
-					photo: 'https://lh4.googleusercontent.com/-WsVeWF_0Gvs/AAAAAAAAAAI/AAAAAAACBTw/SlnXXckbFZA/s32-c-k-no/photo.jpg'
+					photo: 'https://lh4.googleusercontent.com/-WsVeWF_0Gvs/AAAAAAAAAAI/AAAAAAACBTw/SlnXXckbFZA/s32-c-k-no/photo.jpg',
+					cover: 'http://fbcovershub.com/media/cover-9-autumn-leaves-fb-cover-1388015466.jpg'
 				},
 				{
 					channel: 'magyarloltv',
 					twitter: 'TwitterDev',
-					photo: 'https://lh4.googleusercontent.com/-WsVeWF_0Gvs/AAAAAAAAAAI/AAAAAAACBTw/SlnXXckbFZA/s32-c-k-no/photo.jpg'
+					photo: 'https://lh4.googleusercontent.com/-WsVeWF_0Gvs/AAAAAAAAAAI/AAAAAAACBTw/SlnXXckbFZA/s32-c-k-no/photo.jpg',
+					cover: 'https://s-media-cache-ak0.pinimg.com/originals/e7/f3/24/e7f324296abbce5fdee46cecfcb4bc40.jpg'
 				}
 			];
 
 			$scope.selectPlayer = function(index) {
 				$scope.currentPlayer = index;
-				console.log($scope.people);
 
 				twttr.widgets.createTimeline({
 					sourceType: "profile",
-					screenName: $scope.channels[index].twitter
+					screenName: $scope.players[index].twitter
 				},
 					document.getElementsByClassName("twitter-timeline")[0]
 				);
 
-				TwitchService.selectPlayer($scope.channels[index].channel).then(function(response) {
-					// $scope.channels[index].twitch = response.data;
+				TwitchService.selectPlayer($scope.players[index].channel).then(function(response) {
+					$scope.players[index].twitch = response.data;
+
+					if (!$scope.currentVideo) {
+						$scope.currentVideo = $scope.players[0].twitch.videos[0];
+					}
 				});
 			};
 
 			$scope.selectVideo = function(video) {
 				$scope.currentVideo = video;
 			};
+
+
+			$scope.selectPlayer($scope.currentPlayer)
 			
 		}]);
 	</script>
