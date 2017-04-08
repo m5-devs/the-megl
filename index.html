@@ -1,8 +1,10 @@
 <!DOCTYPE html>
 <html ng-app="crworlds">
 <head>
-	<title>Streamer</title>
+	<title>The Megl</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 	<link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/angular_material/1.1.0/angular-material.min.css">
+	<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 	<style>
 		body {
 			background-color: rgb(30,30,30);
@@ -53,14 +55,70 @@
 			overflow-y: scroll;
     		overflow-x: hidden;
 		}
+
+		/* brackets https://codepen.io/aronduby/pen/qliuj */
+		.brackets {
+		  display:flex;
+		  flex-direction:row;
+		}
+		.round{
+		  display:flex;
+		  flex-direction:column;
+		  justify-content:center;
+		  width:200px;
+		  list-style:none;
+		  padding:0;
+		}
+		  .round .spacer{ flex-grow:1; }
+		  .round .spacer:first-child,
+		  .round .spacer:last-child{ flex-grow:.5; }
+
+		  .round .game-spacer{
+		    flex-grow:1;
+		  }
+
+		/*
+		 *  General Styles
+		*/
+
+		.left li.game{
+		  padding-left: 20px;
+		}
+		.right li.game {
+			text-align: right;
+			padding-right: 20px;
+		}
+		.center li.game {
+			text-align: center;
+		}
+
+		  li.game.winner{
+		    font-weight:bold;
+		  }
+
+		  li.game-top{ border-bottom:1px solid #aaa; }
+
+		  li.game-spacer {
+		    min-height:40px;
+			}
+		  .left li.game-spacer{ 
+		    border-right:1px solid #aaa;
+		  }
+		  .right li.game-spacer{ 
+		    border-left:1px solid #aaa;
+		  }
+
+		  li.game-bottom{ 
+		    border-top:1px solid #aaa;
+		  }
 	</style>
 </head>
-<body ng-controller="MainCtrl" flex layout="column">
+<body ng-controller="MainCtrl"  layout="column">
 	<section layout="row" flex>
 		<md-sidenav
 			class="md-sidenav-left md-whiteframe-z2"
 			md-component-id="left"
-			md-is-locked-open="$mdMedia('gt-md')"
+			md-is-locked-open="$mdMedia('gt-md') && drawerVisible"
 			flex="25">
 
 			<md-content layout="row">
@@ -93,17 +151,25 @@
 			</div>
 
 			<md-toolbar md-whiteframe="4dp">
-				<div class="md-toolbar-tools" layout="row" layout-align="space-around center">
-					<h2>The Megl</h2>
+				<div class="md-toolbar-tools" layout="row" layout-align="space-between center">
+					<md-button class="md-icon-button" ng-click="$mdMedia('gt-sm') ? (drawerVisible = !drawerVisible) : (toggleDrawer())">
+						<md-tooltip md-direction="right">{{drawerVisible ? 'Hide' : 'Show'}} players</md-tooltip>
+						<md-icon class="material-icons">menu</md-icon>
+					</md-button>
 
-					<md-icon md-svg-src="https://raw.githubusercontent.com/Kasimir123/themegl/master/res/svg/ic_bracket_black_24px.svg"></md-icon>
+					<img src="http://themegl.com/res/svg/crworlds.svg">
+
+					<md-button class="md-icon-button" aria-label="Brackets" ng-click="openBrackets($event)">
+						<md-tooltip md-direction="left">Brackets</md-tooltip>
+						<md-icon md-svg-icon="{{$sce.trustAsResourceUrl('http://themegl.com/res/svg/ic_bracket_white_24px.svg')}}"></md-icon>
+					</md-button>
 				</div>
 			</md-toolbar>
 
 			<div flex layout-padding layout="row" class="content">
 				<div flex layout="column">
-					<md-card>
-						<iframe style="height: calc(35vw * 9 / 16);" ng-src="{{$sce.trustAsResourceUrl('http://player.twitch.tv/?video=' + currentVideo._id)}}"></iframe>
+					<md-card flex="50">
+						<iframe style="height: 100%;" ng-src="{{$sce.trustAsResourceUrl('http://player.twitch.tv/?video=' + currentVideo._id)}}"></iframe>
 					</md-card>
 
 					<md-card flex>
@@ -111,15 +177,9 @@
 					</md-card>
 				</div>
 
-				<div flex="35" layout="column" ng-show="$mdMedia('gt-sm')">
+				<div flex="{{drawerVisible ? '30' : '25'}}" layout="column" ng-show="$mdMedia('gt-sm')">
 					<md-card flex class="twitter-frame">
-						<md-card-content>
-							<a class="twitter-timeline"
-							   ng-href="https://twitter.com/{{channels[currentPlayer].twitter}}"
-							   data-screen-name="{{channels[currentPlayer].twitter}}"></a>
-
-							<script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
-						</md-card-content>
+						<md-card-content id="twitter-timeline"></md-card-content>
 					</md-card>
 				</div>
 			</div>
@@ -131,6 +191,7 @@
 	<script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular-aria.min.js"></script>
 	<script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular-messages.min.js"></script>
 	<script src="http://ajax.googleapis.com/ajax/libs/angular_material/1.1.0/angular-material.min.js"></script>
+	<script src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
 
 	<script type="text/javascript">
 		var app = angular.module('crworlds', ['ngMaterial']);
@@ -142,12 +203,17 @@
 					url: 'https://api.twitch.tv/kraken/channels/'+channel+'/videos',
 					headers: {
 						'Client-ID': '5s3as3zrs8w8zqayv4ly0f99c3u9gp'
+					},
+					params: {
+						limit: 100
 					}
 				})
 			};
 		}]);
 
-		app.controller('MainCtrl', ['$scope', '$sce', '$mdMedia', 'TwitchService', function($scope, $sce, $mdMedia, TwitchService) {
+		app.controller('MainCtrl', ['$scope', '$sce', '$mdMedia', '$mdSidenav', '$mdDialog', 'TwitchService',
+			function($scope, $sce, $mdMedia, $mdSidenav, $mdDialog, TwitchService) {
+
 			$scope.$mdMedia = $mdMedia;
 			$scope.$sce = $sce;
 			$scope.currentPlayer = 0;
@@ -155,46 +221,28 @@
 				{
 					channel: 'enchatin',
 					twitter: 'enchatin',
-					photo: 'http://i.imgur.com/0iUULGy.png',
-					cover: 'http://i.imgur.com/jd7LD9B.jpg'
-				},
-				{
-					channel: 'axtlol',
-					twitter: 'TwitterDev',
 					photo: 'https://static-cdn.jtvnw.net/jtv_user_pictures/enchatin-profile_image-f3f03701302e9ac4-300x300.png',
-					cover: 'http://www.trendycovers.com/covers/Hand_Heart_facebook_cover_1331287340.jpg'
-				},
-				{
-					channel: 'kamikat',
-					twitter: 'TwitterDev',
-					photo: 'https://lh4.googleusercontent.com/-WsVeWF_0Gvs/AAAAAAAAAAI/AAAAAAACBTw/SlnXXckbFZA/s32-c-k-no/photo.jpg',
-					cover: 'https://s-media-cache-ak0.pinimg.com/originals/84/21/d1/8421d1b53991d565a0e07d0d88cc83f2.jpg'
-				},
-				{
-					channel: 'ogaminglol',
-					twitter: 'TwitterDev',
-					photo: 'https://lh4.googleusercontent.com/-WsVeWF_0Gvs/AAAAAAAAAAI/AAAAAAACBTw/SlnXXckbFZA/s32-c-k-no/photo.jpg',
-					cover: 'http://fbcovershub.com/media/cover-9-autumn-leaves-fb-cover-1388015466.jpg'
-				},
-				{
-					channel: 'magyarloltv',
-					twitter: 'TwitterDev',
-					photo: 'https://lh4.googleusercontent.com/-WsVeWF_0Gvs/AAAAAAAAAAI/AAAAAAACBTw/SlnXXckbFZA/s32-c-k-no/photo.jpg',
-					cover: 'https://s-media-cache-ak0.pinimg.com/originals/e7/f3/24/e7f324296abbce5fdee46cecfcb4bc40.jpg'
+					cover: 'http://i.imgur.com/jd7LD9B.jpg'
 				}
 			];
 
 			$scope.selectPlayer = function(index) {
 				$scope.currentPlayer = index;
 
-				twttr.widgets.createTimeline({
-					sourceType: "profile",
-					screenName: $scope.players[index].twitter
-				},
-					document.getElementsByClassName("twitter-timeline")[0]
-				);
+				if (twttr) {
+					var timeline = document.getElementById("twitter-timeline");
+						timeline.innerHTML = '';
+						
+					twttr.widgets.createTimeline({
+						sourceType: "profile",
+						screenName: $scope.players[index].twitter
+					},
+						timeline
+					);
+				}
 
 				TwitchService.selectPlayer($scope.players[index].channel).then(function(response) {
+					console.log(response);
 					$scope.players[index].twitch = response.data;
 
 					if (!$scope.currentVideo) {
@@ -207,9 +255,134 @@
 				$scope.currentVideo = video;
 			};
 
+			$scope.selectPlayer($scope.currentPlayer);
 
-			$scope.selectPlayer($scope.currentPlayer)
-			
+			$scope.toggleDrawer = function() {
+				$mdSidenav('left').toggle();
+			};
+
+			$scope.openBrackets = function(ev) {
+				$mdDialog.show({
+					controller: ['$scope', function($scope) {
+
+					}],
+					template: `
+						<md-dialog aria-label="Mango (Fruit)">
+							<md-dialog-content layout="column" layout-align="start center">
+								<h3 class="md-headline md-padding" style="margin-top: 10px; margin-bottom: 0px;">Brackets</h3>
+
+								<div class="brackets">
+									<ul class="round round-1 left">
+										<li class="spacer">&nbsp;</li>
+										
+										<li class="game game-top winner">Lousville <span>79</span></li>
+										<li class="game game-spacer">&nbsp;</li>
+										<li class="game game-bottom ">NC A&T <span>48</span></li>
+
+										<li class="spacer">&nbsp;</li>
+											
+										<li class="game game-top winner">Colo St <span>84</span></li>
+										<li class="game game-spacer">&nbsp;</li>
+										<li class="game game-bottom ">Missouri <span>72</span></li>
+
+										<li class="spacer">&nbsp;</li>
+											
+										<li class="game game-top ">Oklahoma St <span>55</span></li>
+										<li class="game game-spacer">&nbsp;</li>
+										<li class="game game-bottom winner">Oregon <span>68</span></li>
+										
+										<li class="spacer">&nbsp;</li>
+										
+										<li class="game game-top winner">Saint Louis <span>64</span></li>
+										<li class="game game-spacer">&nbsp;</li>
+										<li class="game game-bottom ">New Mexico St <span>44</span></li>
+									</ul>
+									<ul class="round round-2 left">
+										<li class="spacer">&nbsp;</li>
+										
+										<li class="game game-top winner">Lousville <span>82</span></li>
+										<li class="game game-spacer">&nbsp;</li>
+										<li class="game game-bottom ">Colo St <span>56</span></li>
+
+										<li class="spacer">&nbsp;</li>
+										
+										<li class="game game-top winner">Oregon <span>74</span></li>
+										<li class="game game-spacer">&nbsp;</li>
+										<li class="game game-bottom ">Saint Louis <span>57</span></li>
+									</ul>
+									<ul class="round round-3 left">
+										<li class="spacer">&nbsp;</li>
+										
+										<li class="game game-top winner">Lousville <span>77</span></li>
+										<li class="game game-spacer">&nbsp;</li>
+										<li class="game game-bottom ">Oregon <span>69</span></li>
+
+										<li class="spacer">&nbsp;</li>
+									</ul>
+									<ul class="round round-4 center">
+										<li class="spacer">&nbsp;</li>
+
+										<li class="game game-top winner">Winner</li>
+										<li class="game game-bottom">Loser</li>
+
+										<li class="spacer">&nbsp;</li>
+									</ul>
+									<ul class="round round-3 right">
+										<li class="spacer">&nbsp;</li>
+										
+										<li class="game game-top winner">Lousville <span>77</span></li>
+										<li class="game game-spacer">&nbsp;</li>
+										<li class="game game-bottom ">Oregon <span>69</span></li>
+
+										<li class="spacer">&nbsp;</li>
+									</ul>
+									<ul class="round round-2 right">
+										<li class="spacer">&nbsp;</li>
+										
+										<li class="game game-top winner">Lousville <span>82</span></li>
+										<li class="game game-spacer">&nbsp;</li>
+										<li class="game game-bottom ">Colo St <span>56</span></li>
+
+										<li class="spacer">&nbsp;</li>
+										
+										<li class="game game-top winner">Oregon <span>74</span></li>
+										<li class="game game-spacer">&nbsp;</li>
+										<li class="game game-bottom ">Saint Louis <span>57</span></li>
+									</ul>
+									<ul class="round round-1 right">
+										<li class="spacer">&nbsp;</li>
+										
+										<li class="game game-top winner">Lousville <span>79</span></li>
+										<li class="game game-spacer">&nbsp;</li>
+										<li class="game game-bottom ">NC A&T <span>48</span></li>
+
+										<li class="spacer">&nbsp;</li>
+										
+										<li class="game game-top winner">Colo St <span>84</span></li>
+										<li class="game game-spacer">&nbsp;</li>
+										<li class="game game-bottom ">Missouri <span>72</span></li>
+
+										<li class="spacer">&nbsp;</li>
+										
+										<li class="game game-top ">Oklahoma St <span>55</span></li>
+										<li class="game game-spacer">&nbsp;</li>
+										<li class="game game-bottom winner">Oregon <span>68</span></li>
+
+										<li class="spacer">&nbsp;</li>
+										
+										<li class="game game-top winner">Saint Louis <span>64</span></li>
+										<li class="game game-spacer">&nbsp;</li>
+										<li class="game game-bottom ">New Mexico St <span>44</span></li>
+									</ul>
+								</div>
+							</md-dialog-content>
+						</md-dialog>
+					`,
+					parent: angular.element(document.body),
+					targetEvent: ev,
+					clickOutsideToClose:true
+				});
+			};
 		}]);
 	</script>
 </body>
