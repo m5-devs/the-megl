@@ -1,0 +1,71 @@
+<div layout="row" flex>
+	<md-sidenav
+		class="md-sidenav-left md-whiteframe-z2"
+		md-component-id="left"
+		md-is-locked-open="$mdMedia('gt-md') && drawerVisible"
+		flex="25">
+
+		<md-content layout="row">
+			<md-list md-whiteframe="4dp" style="width: 110px; overflow: hidden;">
+				<md-list-item ng-repeat="player in players" ng-click="selectPlayer($index)" aria-label="Player" style="margin: 10px 0px">
+					<md-tooltip>{{player.channel}}</md-tooltip>
+					<img class="md-avatar" ng-src="{{player.photo}}">
+				</md-list-item>
+			</md-list>
+
+			<md-list style="overflow-y: scroll; overflow-x: hidden; background-color: rgba(0,0,0,.05);">
+				<md-list-item
+					ng-repeat="video in players[currentPlayer].twitch.videos"
+					ng-click="selectVideo(video)"
+					aria-label="Video">
+
+					<div layout="column" layout-align="start start" style="padding: 10px 5px;">
+						<p class="md-subhead margin-0">{{video.title}}</p>
+						<p class="md-body-1 margin-0">{{video.game}}</p>
+						<img ng-src="{{video.thumbnails[0].url}}" class="padding-0" style="width: 100%;"/>
+					</div>
+				</md-list-item>
+			</md-list>
+		</md-content>
+	</md-sidenav>
+
+	<div flex layout="column">
+		<div class="bg-blur" flex="100">
+			<img ng-src="{{players[currentPlayer].cover}}"/>
+		</div>
+
+		<md-toolbar md-whiteframe="4dp">
+			<div class="md-toolbar-tools" layout="row" layout-align="space-between center">
+				<md-button class="md-icon-button" ng-click="$mdMedia('gt-sm') ? (drawerVisible = !drawerVisible) : (toggleDrawer())">
+					<md-tooltip md-direction="right">{{drawerVisible ? 'Hide' : 'Show'}} players</md-tooltip>
+					<md-icon class="material-icons">menu</md-icon>
+				</md-button>
+
+				<img src="http://themegl.com/res/svg/crworlds.svg">
+
+				<md-button class="md-icon-button" aria-label="Brackets" ng-click="openBrackets($event)">
+					<md-tooltip md-direction="left">Brackets</md-tooltip>
+					<md-icon md-svg-icon="{{$sce.trustAsResourceUrl('http://themegl.com/res/svg/ic_bracket_white_24px.svg')}}"></md-icon>
+				</md-button>
+			</div>
+		</md-toolbar>
+
+		<div flex layout-padding layout="row" class="content">
+			<div flex layout="column">
+				<md-card flex="50">
+					<iframe style="height: 100%;" ng-src="{{$sce.trustAsResourceUrl('http://player.twitch.tv/?video=' + currentVideo._id)}}"></iframe>
+				</md-card>
+
+				<md-card flex>
+					<iframe flex ng-src="{{$sce.trustAsResourceUrl('http://twitch.tv/' + players[currentPlayer].channel + '/chat')}}"></iframe>
+				</md-card>
+			</div>
+
+			<div flex="{{drawerVisible ? '30' : '25'}}" layout="column" ng-show="$mdMedia('gt-sm')">
+				<md-card flex class="twitter-frame">
+					<md-card-content id="twitter-timeline"></md-card-content>
+				</md-card>
+			</div>
+		</div>
+	</div>
+</div>

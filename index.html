@@ -4,386 +4,43 @@
 	<title>The Megl</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 	<link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/angular_material/1.1.0/angular-material.min.css">
-	<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-	<style>
-		body {
-			background-color: rgb(30,30,30);
-			overflow: hidden;
-		}
-		.margin-0 {
-			margin: 0;
-		}
-		.padding-0 {
-			padding: 0;
-		}
-
-		iframe {
-			border: none;
-		}
-
-		.bg-blur {
-			transform: scale(1.2);
-			position: absolute;
-			width: 100%;
-		}
-		.bg-blur img {
-			-webkit-filter: blur(8px);
-			filter: blur(8px);
-			width: 80%;
-		}
-		.bg-blur:after {
-			content  : "";
-			position : absolute;
-			z-index  : 1;
-			bottom   : 0;
-			left     : 0;
-			pointer-events   : none;
-			background-image : linear-gradient(to bottom, 
-							   rgba(30,30,30, 0), 
-							   rgba(30,30,30, 1) 100%);
-			width    : 100%;
-			height   : 10vw;
-		}
-
-		.content {
-			z-index: 1;
-			position: relative;
-		}
-
-		.twitter-frame {
-			margin-left: 0;
-			overflow-y: scroll;
-    		overflow-x: hidden;
-		}
-
-		/* brackets https://codepen.io/aronduby/pen/qliuj */
-		.brackets {
-		  display:flex;
-		  flex-direction:row;
-		}
-		.round{
-		  display:flex;
-		  flex-direction:column;
-		  justify-content:center;
-		  width:200px;
-		  list-style:none;
-		  padding:0;
-		}
-		  .round .spacer{ flex-grow:1; }
-		  .round .spacer:first-child,
-		  .round .spacer:last-child{ flex-grow:.5; }
-
-		  .round .game-spacer{
-		    flex-grow:1;
-		  }
-
-		/*
-		 *  General Styles
-		*/
-
-		.left li.game{
-		  padding-left: 20px;
-		}
-		.right li.game {
-			text-align: right;
-			padding-right: 20px;
-		}
-		.center li.game {
-			text-align: center;
-		}
-
-		  li.game.winner{
-		    font-weight:bold;
-		  }
-
-		  li.game-top{ border-bottom:1px solid #aaa; }
-
-		  li.game-spacer {
-		    min-height:40px;
-			}
-		  .left li.game-spacer{ 
-		    border-right:1px solid #aaa;
-		  }
-		  .right li.game-spacer{ 
-		    border-left:1px solid #aaa;
-		  }
-
-		  li.game-bottom{ 
-		    border-top:1px solid #aaa;
-		  }
-	</style>
+	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+	<link rel="stylesheet" href="css/main.css">
 </head>
 <body ng-controller="MainCtrl"  layout="column">
-	<section layout="row" flex>
-		<md-sidenav
-			class="md-sidenav-left md-whiteframe-z2"
-			md-component-id="left"
-			md-is-locked-open="$mdMedia('gt-md') && drawerVisible"
-			flex="25">
-
-			<md-content layout="row">
-				<md-list md-whiteframe="4dp" style="width: 110px; overflow: hidden;">
-					<md-list-item ng-repeat="player in players" ng-click="selectPlayer($index)" aria-label="Player" style="margin: 10px 0px">
-						<md-tooltip>{{player.channel}}</md-tooltip>
-						<img class="md-avatar" ng-src="{{player.photo}}">
-					</md-list-item>
-				</md-list>
-
-				<md-list style="overflow-y: scroll; overflow-x: hidden; background-color: rgba(0,0,0,.05);">
-					<md-list-item
-						ng-repeat="video in players[currentPlayer].twitch.videos"
-						ng-click="selectVideo(video)"
-						aria-label="Video">
-
-						<div layout="column" layout-align="start start" style="padding: 10px 5px;">
-							<p class="md-subhead margin-0">{{video.title}}</p>
-							<p class="md-body-1 margin-0">{{video.game}}</p>
-							<img ng-src="{{video.thumbnails[0].url}}" class="padding-0" style="width: 100%;"/>
-						</div>
-					</md-list-item>
-				</md-list>
-			</md-content>
-		</md-sidenav>
-
-		<div flex layout="column">
-			<div class="bg-blur" flex="100">
-				<img ng-src="{{players[currentPlayer].cover}}"/>
-			</div>
-
-			<md-toolbar md-whiteframe="4dp">
-				<div class="md-toolbar-tools" layout="row" layout-align="space-between center">
-					<md-button class="md-icon-button" ng-click="$mdMedia('gt-sm') ? (drawerVisible = !drawerVisible) : (toggleDrawer())">
-						<md-tooltip md-direction="right">{{drawerVisible ? 'Hide' : 'Show'}} players</md-tooltip>
-						<md-icon class="material-icons">menu</md-icon>
-					</md-button>
-
-					<img src="http://themegl.com/res/svg/crworlds.svg">
-
-					<md-button class="md-icon-button" aria-label="Brackets" ng-click="openBrackets($event)">
-						<md-tooltip md-direction="left">Brackets</md-tooltip>
-						<md-icon md-svg-icon="{{$sce.trustAsResourceUrl('http://themegl.com/res/svg/ic_bracket_white_24px.svg')}}"></md-icon>
-					</md-button>
-				</div>
-			</md-toolbar>
-
-			<div flex layout-padding layout="row" class="content">
-				<div flex layout="column">
-					<md-card flex="50">
-						<iframe style="height: 100%;" ng-src="{{$sce.trustAsResourceUrl('http://player.twitch.tv/?video=' + currentVideo._id)}}"></iframe>
-					</md-card>
-
-					<md-card flex>
-						<iframe flex ng-src="{{$sce.trustAsResourceUrl('http://twitch.tv/' + players[currentPlayer].channel + '/chat')}}"></iframe>
-					</md-card>
-				</div>
-
-				<div flex="{{drawerVisible ? '30' : '25'}}" layout="column" ng-show="$mdMedia('gt-sm')">
-					<md-card flex class="twitter-frame">
-						<md-card-content id="twitter-timeline"></md-card-content>
-					</md-card>
-				</div>
-			</div>
-		</div>
-	</section>
+	
+	<ui-view flex layout="column"></ui-view>
 
 	<script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular.min.js"></script>
 	<script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular-animate.min.js"></script>
 	<script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular-aria.min.js"></script>
 	<script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular-messages.min.js"></script>
 	<script src="http://ajax.googleapis.com/ajax/libs/angular_material/1.1.0/angular-material.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/angular-ui-router/0.4.2/angular-ui-router.js"></script>
 	<script src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
 
 	<script type="text/javascript">
-		var app = angular.module('crworlds', ['ngMaterial']);
+		var app = angular.module('crworlds', ['ngMaterial', 'ui.router']);
 
-		app.service('TwitchService', ['$http', function($http) {
-			this.selectPlayer = function(channel) {
-				return $http({
-					method: 'GET',
-					url: 'https://api.twitch.tv/kraken/channels/'+channel+'/videos',
-					headers: {
-						'Client-ID': '5s3as3zrs8w8zqayv4ly0f99c3u9gp'
-					},
-					params: {
-						limit: 100
-					}
-				})
-			};
-		}]);
+		app.config(['$stateProvider', '$urlRouterProvider', function($stateProvider, $urlRouterProvider) {
+			$stateProvider.state({
+				name: 'home',
+				url: '/',
+				templateUrl: '/views/home.view.html'
+			});
 
-		app.controller('MainCtrl', ['$scope', '$sce', '$mdMedia', '$mdSidenav', '$mdDialog', 'TwitchService',
-			function($scope, $sce, $mdMedia, $mdSidenav, $mdDialog, TwitchService) {
+			$stateProvider.state({
+				name: 'watch',
+				url: '/watch',
+				templateUrl: '/views/watch.view.html',
+				controller: 'MainCtrl'
+			});
 
-			$scope.$mdMedia = $mdMedia;
-			$scope.$sce = $sce;
-			$scope.currentPlayer = 0;
-			$scope.players = [
-				{
-					channel: 'enchatin',
-					twitter: 'enchatin',
-					photo: 'https://static-cdn.jtvnw.net/jtv_user_pictures/enchatin-profile_image-f3f03701302e9ac4-300x300.png',
-					cover: 'http://i.imgur.com/jd7LD9B.jpg'
-				}
-			];
-
-			$scope.selectPlayer = function(index) {
-				$scope.currentPlayer = index;
-
-				if (twttr) {
-					var timeline = document.getElementById("twitter-timeline");
-						timeline.innerHTML = '';
-						
-					twttr.widgets.createTimeline({
-						sourceType: "profile",
-						screenName: $scope.players[index].twitter
-					},
-						timeline
-					);
-				}
-
-				TwitchService.selectPlayer($scope.players[index].channel).then(function(response) {
-					console.log(response);
-					$scope.players[index].twitch = response.data;
-
-					if (!$scope.currentVideo) {
-						$scope.currentVideo = $scope.players[0].twitch.videos[0];
-					}
-				});
-			};
-
-			$scope.selectVideo = function(video) {
-				$scope.currentVideo = video;
-			};
-
-			$scope.selectPlayer($scope.currentPlayer);
-
-			$scope.toggleDrawer = function() {
-				$mdSidenav('left').toggle();
-			};
-
-			$scope.openBrackets = function(ev) {
-				$mdDialog.show({
-					controller: ['$scope', function($scope) {
-
-					}],
-					template: `
-						<md-dialog aria-label="Mango (Fruit)">
-							<md-dialog-content layout="column" layout-align="start center">
-								<h3 class="md-headline md-padding" style="margin-top: 10px; margin-bottom: 0px;">Brackets</h3>
-
-								<div class="brackets">
-									<ul class="round round-1 left">
-										<li class="spacer">&nbsp;</li>
-										
-										<li class="game game-top winner">Lousville <span>79</span></li>
-										<li class="game game-spacer">&nbsp;</li>
-										<li class="game game-bottom ">NC A&T <span>48</span></li>
-
-										<li class="spacer">&nbsp;</li>
-											
-										<li class="game game-top winner">Colo St <span>84</span></li>
-										<li class="game game-spacer">&nbsp;</li>
-										<li class="game game-bottom ">Missouri <span>72</span></li>
-
-										<li class="spacer">&nbsp;</li>
-											
-										<li class="game game-top ">Oklahoma St <span>55</span></li>
-										<li class="game game-spacer">&nbsp;</li>
-										<li class="game game-bottom winner">Oregon <span>68</span></li>
-										
-										<li class="spacer">&nbsp;</li>
-										
-										<li class="game game-top winner">Saint Louis <span>64</span></li>
-										<li class="game game-spacer">&nbsp;</li>
-										<li class="game game-bottom ">New Mexico St <span>44</span></li>
-									</ul>
-									<ul class="round round-2 left">
-										<li class="spacer">&nbsp;</li>
-										
-										<li class="game game-top winner">Lousville <span>82</span></li>
-										<li class="game game-spacer">&nbsp;</li>
-										<li class="game game-bottom ">Colo St <span>56</span></li>
-
-										<li class="spacer">&nbsp;</li>
-										
-										<li class="game game-top winner">Oregon <span>74</span></li>
-										<li class="game game-spacer">&nbsp;</li>
-										<li class="game game-bottom ">Saint Louis <span>57</span></li>
-									</ul>
-									<ul class="round round-3 left">
-										<li class="spacer">&nbsp;</li>
-										
-										<li class="game game-top winner">Lousville <span>77</span></li>
-										<li class="game game-spacer">&nbsp;</li>
-										<li class="game game-bottom ">Oregon <span>69</span></li>
-
-										<li class="spacer">&nbsp;</li>
-									</ul>
-									<ul class="round round-4 center">
-										<li class="spacer">&nbsp;</li>
-
-										<li class="game game-top winner">Winner</li>
-										<li class="game game-bottom">Loser</li>
-
-										<li class="spacer">&nbsp;</li>
-									</ul>
-									<ul class="round round-3 right">
-										<li class="spacer">&nbsp;</li>
-										
-										<li class="game game-top winner">Lousville <span>77</span></li>
-										<li class="game game-spacer">&nbsp;</li>
-										<li class="game game-bottom ">Oregon <span>69</span></li>
-
-										<li class="spacer">&nbsp;</li>
-									</ul>
-									<ul class="round round-2 right">
-										<li class="spacer">&nbsp;</li>
-										
-										<li class="game game-top winner">Lousville <span>82</span></li>
-										<li class="game game-spacer">&nbsp;</li>
-										<li class="game game-bottom ">Colo St <span>56</span></li>
-
-										<li class="spacer">&nbsp;</li>
-										
-										<li class="game game-top winner">Oregon <span>74</span></li>
-										<li class="game game-spacer">&nbsp;</li>
-										<li class="game game-bottom ">Saint Louis <span>57</span></li>
-									</ul>
-									<ul class="round round-1 right">
-										<li class="spacer">&nbsp;</li>
-										
-										<li class="game game-top winner">Lousville <span>79</span></li>
-										<li class="game game-spacer">&nbsp;</li>
-										<li class="game game-bottom ">NC A&T <span>48</span></li>
-
-										<li class="spacer">&nbsp;</li>
-										
-										<li class="game game-top winner">Colo St <span>84</span></li>
-										<li class="game game-spacer">&nbsp;</li>
-										<li class="game game-bottom ">Missouri <span>72</span></li>
-
-										<li class="spacer">&nbsp;</li>
-										
-										<li class="game game-top ">Oklahoma St <span>55</span></li>
-										<li class="game game-spacer">&nbsp;</li>
-										<li class="game game-bottom winner">Oregon <span>68</span></li>
-
-										<li class="spacer">&nbsp;</li>
-										
-										<li class="game game-top winner">Saint Louis <span>64</span></li>
-										<li class="game game-spacer">&nbsp;</li>
-										<li class="game game-bottom ">New Mexico St <span>44</span></li>
-									</ul>
-								</div>
-							</md-dialog-content>
-						</md-dialog>
-					`,
-					parent: angular.element(document.body),
-					targetEvent: ev,
-					clickOutsideToClose:true
-				});
-			};
+			$urlRouterProvider.otherwise('/');
 		}]);
 	</script>
+
+	<script src="js/services/twitch.service.js"></script>
+	<script src="js/controllers/main.controller.js"></script>
 </body>
 </html>
